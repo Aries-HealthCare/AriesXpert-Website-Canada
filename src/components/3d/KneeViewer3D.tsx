@@ -1,347 +1,362 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import * as THREE from "three";
-import { CheckCircle2, AlertTriangle, ShieldCheck, Activity } from "lucide-react";
+import { Activity, ShieldCheck, Layers, Sparkles, CheckCircle2, AlertTriangle } from "lucide-react";
 
-type KneeMode = "healthy" | "osteoarthritis" | "acl-tear" | "tkr-implant";
+type KneeMode = "healthy" | "osteoarthritis" | "acl-tear" | "meniscus" | "tkr-implant";
 
 export const KneeViewer3D: React.FC = () => {
   const mountRef = useRef<HTMLDivElement>(null);
-  const [kneeMode, setKneeMode] = useState<KneeMode>("healthy");
-  const [visibleLayers, setVisibleLayers] = useState({
-    bones: true,
-    cartilage: true,
-    meniscus: true,
-    cruciates: true,
-    collaterals: true,
-  });
-
-  const modeDescriptions = {
-    healthy: {
-      title: "Healthy Physiological Knee",
-      status: "Optimal Joint Homeostasis",
-      statusColor: "text-recovery-mint",
-      description: "Smooth hyaline articular cartilage buffers tibiofemoral ground reaction forces. Intact cruciate (ACL/PCL) and collateral (MCL/LCL) ligaments provide robust dynamic stability during pivoting.",
-      rehabKey: "Prevention, core-to-hip kinetic chain conditioning, and deceleration biomechanics."
-    },
-    osteoarthritis: {
-      title: "Degenerative Knee Osteoarthritis",
-      status: "Cartilage Fibrillation & Narrowed Joint Space",
-      statusColor: "text-pain-amber",
-      description: "Progressive thinning and breakdown of articular cartilage, accompanied by subchondral sclerosis and marginal osteophytes. Causes morning stiffness, crepitus, and load-dependent discomfort.",
-      rehabKey: "High-repetition low-impact joint lubrication (cycling), progressive quad strengthening, and off-loading exercises."
-    },
-    "acl-tear": {
-      title: "Acute Anterior Cruciate Ligament (ACL) Tear",
-      status: "Structural Ligamentous Laxity",
-      statusColor: "text-pain-crimson",
-      description: "Complete or partial disruption of the ACL fibers, resulting in anterior tibial translation and rotational instability ('giving way' sensation under pivoting loads).",
-      rehabKey: "Restoration of terminal extension (0°), neuromuscular hamstring/quad stabilization, and pre/post-operative athletic progression."
-    },
-    "tkr-implant": {
-      title: "Post-Surgical Total Knee Arthroplasty (TKR)",
-      status: "Prosthetic Joint Integration",
-      statusColor: "text-clinical-cyan",
-      description: "Precision medical-grade titanium femoral/tibial trays with an ultra-high-molecular-weight polyethylene spacer replacing arthritic joint surfaces.",
-      rehabKey: "Phased post-operative rehabilitation: 0° extension priority, scar tissue mobilization, quad activation, and gait normalization."
-    }
-  };
+  const [selectedMode, setSelectedMode] = useState<KneeMode>("healthy");
+  const [showCartilage, setShowCartilage] = useState(true);
+  const [showMeniscus, setShowMeniscus] = useState(true);
+  const [showCruciates, setShowCruciates] = useState(true);
 
   useEffect(() => {
-    const container = mountRef.current;
-    if (!container) return;
+    const mount = mountRef.current;
+    if (!mount) return;
+
+    const width = mount.clientWidth || 600;
+    const height = mount.clientHeight || 450;
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x070b12, 0.04);
+    scene.fog = new THREE.FogExp2(0x030712, 0.04);
 
-    const camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.1, 50);
-    camera.position.set(0, 0, 5.0);
+    const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 50);
+    camera.position.set(0, 0, 6.8);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    container.appendChild(renderer.domElement);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.3;
+    mount.innerHTML = "";
+    mount.appendChild(renderer.domElement);
 
-    // Lighting
-    scene.add(new THREE.AmbientLight(0x0ea5e9, 0.9));
-    const keyLight = new THREE.DirectionalLight(0x00f2fe, 2.5);
-    keyLight.position.set(4, 5, 4);
+    // Lights
+    const ambient = new THREE.AmbientLight(0x0f2b48, 1.4);
+    scene.add(ambient);
+
+    const keyLight = new THREE.DirectionalLight(0x00f2fe, 2.8);
+    keyLight.position.set(5, 6, 5);
     scene.add(keyLight);
 
-    const rimLight = new THREE.DirectionalLight(0x10b981, 1.5);
-    rimLight.position.set(-4, -3, -3);
-    scene.add(rimLight);
+    const fillLight = new THREE.DirectionalLight(0x10b981, 1.5);
+    fillLight.position.set(-5, -4, -4);
+    scene.add(fillLight);
 
     const kneeGroup = new THREE.Group();
     scene.add(kneeGroup);
 
-    // Materials based on Mode
-    const isImplant = kneeMode === "tkr-implant";
-    const isOA = kneeMode === "osteoarthritis";
-    const isAclTorn = kneeMode === "acl-tear";
-
-    const boneMaterial = new THREE.MeshPhysicalMaterial({
-      color: isImplant ? 0x94a3b8 : isOA ? 0xd1d5db : 0xf8fafc,
-      metalness: isImplant ? 0.85 : 0.1,
-      roughness: isImplant ? 0.2 : isOA ? 0.6 : 0.3,
-      emissive: isImplant ? 0x00f2fe : 0x00f2fe,
-      emissiveIntensity: isImplant ? 0.3 : 0.1,
+    // Materials
+    const boneMaterial = new THREE.MeshStandardMaterial({
+      color: 0xecfeff,
+      roughness: 0.35,
+      metalness: 0.15,
+      emissive: 0x0369a1,
+      emissiveIntensity: 0.25,
     });
 
-    const cartilageMaterial = new THREE.MeshPhysicalMaterial({
-      color: isOA ? 0x92400e : 0x00f2fe,
-      transmission: isOA ? 0.1 : 0.6,
-      thickness: 0.3,
+    const implantMetalMat = new THREE.MeshStandardMaterial({
+      color: 0x94a3b8,
+      roughness: 0.1,
+      metalness: 0.95,
+      emissive: 0x00f2fe,
+      emissiveIntensity: 0.2,
+    });
+
+    const cartilageNormalMat = new THREE.MeshStandardMaterial({
+      color: 0x38bdf8,
+      roughness: 0.2,
       transparent: true,
-      opacity: isOA ? 0.4 : 0.85,
+      opacity: 0.85,
     });
 
-    const meniscusMaterial = new THREE.MeshStandardMaterial({
-      color: isOA ? 0xb45309 : 0x06d6a0,
-      roughness: 0.4,
-      metalness: 0.1,
-    });
-
-    const ligamentMaterial = new THREE.MeshStandardMaterial({
-      color: 0xe2e8f0,
-      roughness: 0.4,
-    });
-
-    const tornAclMaterial = new THREE.MeshStandardMaterial({
+    const cartilageDegradedMat = new THREE.MeshStandardMaterial({
       color: 0xef4444,
-      emissive: 0xef4444,
-      emissiveIntensity: 0.8,
+      roughness: 0.8,
+      transparent: true,
+      opacity: 0.45,
     });
 
-    // 1. Femur (Distal Thigh Bone)
-    const femur = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.75, 1.8, 24), boneMaterial);
-    femur.position.set(0, 1.1, 0);
-    kneeGroup.add(femur);
+    const ligamentMat = new THREE.MeshStandardMaterial({
+      color: 0xfacc15,
+      roughness: 0.3,
+    });
 
-    // Femoral Condyles (Medial & Lateral)
-    const condyleL = new THREE.Mesh(new THREE.SphereGeometry(0.38, 24, 24), boneMaterial);
-    condyleL.position.set(-0.35, 0.25, 0);
-    kneeGroup.add(condyleL);
+    const ligamentTornMat = new THREE.MeshStandardMaterial({
+      color: 0xef4444,
+      roughness: 0.8,
+      emissive: 0xdc2626,
+      emissiveIntensity: 0.6,
+    });
 
-    const condyleR = new THREE.Mesh(new THREE.SphereGeometry(0.38, 24, 24), boneMaterial);
-    condyleR.position.set(0.35, 0.25, 0);
-    kneeGroup.add(condyleR);
+    // 1. Distal Femur (Thigh Bone)
+    if (selectedMode === "tkr-implant") {
+      const tkrFemurGeo = new THREE.BoxGeometry(1.6, 1.2, 1.4);
+      const tkrFemur = new THREE.Mesh(tkrFemurGeo, implantMetalMat);
+      tkrFemur.position.y = 1.0;
+      kneeGroup.add(tkrFemur);
+    } else {
+      const femurCondyleGeo = new THREE.CylinderGeometry(0.75, 0.95, 1.8, 20);
+      const femurMesh = new THREE.Mesh(femurCondyleGeo, boneMaterial);
+      femurMesh.position.y = 1.1;
+      kneeGroup.add(femurMesh);
 
-    // 2. Tibia (Proximal Shin Bone)
-    const tibia = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.5, 1.8, 24), boneMaterial);
-    tibia.position.set(0, -1.2, 0);
-    kneeGroup.add(tibia);
+      // Medial & Lateral Femoral Condyles
+      const condyleSphereGeo = new THREE.SphereGeometry(0.48, 16, 16);
+      condyleSphereGeo.scale(0.8, 1.0, 1.2);
+      const medialCondyle = new THREE.Mesh(condyleSphereGeo, boneMaterial);
+      medialCondyle.position.set(-0.45, 0.3, 0);
+      kneeGroup.add(medialCondyle);
 
-    // 3. Patella (Knee Cap)
-    const patella = new THREE.Mesh(new THREE.SphereGeometry(0.26, 16, 16), boneMaterial);
-    patella.position.set(0, 0.2, 0.65);
-    kneeGroup.add(patella);
-
-    // 4. Cartilage & Menisci
-    if (visibleLayers.cartilage && !isImplant) {
-      const cartilageCap = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, isOA ? 0.04 : 0.1, 24), cartilageMaterial);
-      cartilageCap.position.set(0, 0.08, 0);
-      kneeGroup.add(cartilageCap);
+      const lateralCondyle = new THREE.Mesh(condyleSphereGeo, boneMaterial);
+      lateralCondyle.position.set(0.45, 0.3, 0);
+      kneeGroup.add(lateralCondyle);
     }
 
-    if (visibleLayers.meniscus && !isImplant) {
-      const medialMeniscus = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.07, 12, 24, Math.PI * 1.5), meniscusMaterial);
-      medialMeniscus.position.set(-0.32, -0.05, 0);
+    // 2. Proximal Tibia (Shin Bone)
+    if (selectedMode === "tkr-implant") {
+      const tkrTibiaGeo = new THREE.CylinderGeometry(0.85, 0.55, 1.5, 16);
+      const tkrTibia = new THREE.Mesh(tkrTibiaGeo, implantMetalMat);
+      tkrTibia.position.y = -1.1;
+      kneeGroup.add(tkrTibia);
+
+      // Polyethylene Plastic Spacer
+      const spacerGeo = new THREE.CylinderGeometry(0.9, 0.9, 0.25, 20);
+      const spacerMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 });
+      const spacerMesh = new THREE.Mesh(spacerGeo, spacerMat);
+      spacerMesh.position.y = -0.25;
+      kneeGroup.add(spacerMesh);
+    } else {
+      const tibiaPlateauGeo = new THREE.CylinderGeometry(0.95, 0.6, 1.8, 20);
+      const tibiaMesh = new THREE.Mesh(tibiaPlateauGeo, boneMaterial);
+      tibiaMesh.position.y = -1.1;
+      kneeGroup.add(tibiaMesh);
+    }
+
+    // 3. Articular Cartilage Caps
+    if (showCartilage && selectedMode !== "tkr-implant") {
+      const cartilageGeo = new THREE.SphereGeometry(0.49, 16, 16);
+      cartilageGeo.scale(0.82, 0.3, 1.22);
+      const cartilageMesh = new THREE.Mesh(
+        cartilageGeo, 
+        selectedMode === "osteoarthritis" ? cartilageDegradedMat : cartilageNormalMat
+      );
+      cartilageMesh.position.set(-0.45, 0.25, 0);
+      kneeGroup.add(cartilageMesh);
+
+      const cartilageLateral = new THREE.Mesh(
+        cartilageGeo, 
+        selectedMode === "osteoarthritis" ? cartilageDegradedMat : cartilageNormalMat
+      );
+      cartilageLateral.position.set(0.45, 0.25, 0);
+      kneeGroup.add(cartilageLateral);
+    }
+
+    // 4. Meniscus (Medial & Lateral C-shaped Cushions)
+    if (showMeniscus && selectedMode !== "tkr-implant") {
+      const meniscusGeo = new THREE.TorusGeometry(0.35, 0.09, 10, 20, Math.PI * 1.5);
+      const meniscusMat = new THREE.MeshStandardMaterial({
+        color: selectedMode === "meniscus" ? 0xef4444 : 0x0ea5e9,
+        roughness: 0.4,
+      });
+      const medialMeniscus = new THREE.Mesh(meniscusGeo, meniscusMat);
       medialMeniscus.rotation.x = Math.PI / 2;
+      medialMeniscus.position.set(-0.45, -0.18, 0);
       kneeGroup.add(medialMeniscus);
 
-      const lateralMeniscus = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.07, 12, 24, Math.PI * 1.5), meniscusMaterial);
-      lateralMeniscus.position.set(0.32, -0.05, 0);
+      const lateralMeniscus = new THREE.Mesh(meniscusGeo, meniscusMat);
       lateralMeniscus.rotation.x = Math.PI / 2;
       lateralMeniscus.rotation.z = Math.PI;
+      lateralMeniscus.position.set(0.45, -0.18, 0);
       kneeGroup.add(lateralMeniscus);
     }
 
     // 5. Cruciate Ligaments (ACL & PCL)
-    if (visibleLayers.cruciates && !isImplant) {
-      // ACL
-      const aclGeo = new THREE.CylinderGeometry(0.06, 0.06, 0.65, 12);
-      const aclMesh = new THREE.Mesh(aclGeo, isAclTorn ? tornAclMaterial : ligamentMaterial);
-      aclMesh.position.set(0.05, 0.1, 0);
-      aclMesh.rotation.set(0.4, 0, 0.5);
-      kneeGroup.add(aclMesh);
+    if (showCruciates && selectedMode !== "tkr-implant") {
+      if (selectedMode === "acl-tear") {
+        // Torn separated ACL pieces
+        const aclTopGeo = new THREE.CylinderGeometry(0.06, 0.05, 0.3, 8);
+        const aclTop = new THREE.Mesh(aclTopGeo, ligamentTornMat);
+        aclTop.position.set(0.15, 0.2, 0.1);
+        aclTop.rotation.z = 0.4;
+        kneeGroup.add(aclTop);
 
-      // PCL
-      const pclGeo = new THREE.CylinderGeometry(0.07, 0.07, 0.7, 12);
-      const pclMesh = new THREE.Mesh(pclGeo, ligamentMaterial);
-      pclMesh.position.set(-0.05, 0.1, -0.1);
-      pclMesh.rotation.set(-0.4, 0, -0.5);
+        const aclBottomGeo = new THREE.CylinderGeometry(0.06, 0.05, 0.25, 8);
+        const aclBottom = new THREE.Mesh(aclBottomGeo, ligamentTornMat);
+        aclBottom.position.set(-0.15, -0.15, 0.15);
+        aclBottom.rotation.z = -0.4;
+        kneeGroup.add(aclBottom);
+      } else {
+        const aclGeo = new THREE.CylinderGeometry(0.06, 0.06, 0.65, 12);
+        const aclMesh = new THREE.Mesh(aclGeo, ligamentMat);
+        aclMesh.position.set(0, 0.05, 0.1);
+        aclMesh.rotation.z = 0.35;
+        aclMesh.rotation.x = 0.25;
+        kneeGroup.add(aclMesh);
+      }
+
+      // PCL (Posterior)
+      const pclGeo = new THREE.CylinderGeometry(0.06, 0.06, 0.65, 12);
+      const pclMesh = new THREE.Mesh(pclGeo, ligamentMat);
+      pclMesh.position.set(0, 0.05, -0.1);
+      pclMesh.rotation.z = -0.35;
+      pclMesh.rotation.x = -0.25;
       kneeGroup.add(pclMesh);
     }
 
-    // 6. Collateral Ligaments (MCL & LCL)
-    if (visibleLayers.collaterals && !isImplant) {
-      const mcl = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.2, 12), ligamentMaterial);
-      mcl.position.set(-0.68, 0.1, 0);
-      kneeGroup.add(mcl);
-
-      const lcl = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.2, 12), ligamentMaterial);
-      lcl.position.set(0.68, 0.1, 0);
-      kneeGroup.add(lcl);
-    }
-
-    // Interactive Drag
+    // Interaction / Drag
     let isDragging = false;
-    let previousPos = { x: 0, y: 0 };
+    let prevMouse = { x: 0, y: 0 };
 
-    const handleMouseDown = (e: MouseEvent) => {
+    const onMouseDown = (e: MouseEvent) => {
       isDragging = true;
-      previousPos = { x: e.clientX, y: e.clientY };
+      prevMouse = { x: e.clientX, y: e.clientY };
     };
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const onMouseMove = (e: MouseEvent) => {
       if (!isDragging) return;
-      const deltaX = e.clientX - previousPos.x;
-      const deltaY = e.clientY - previousPos.y;
-
-      kneeGroup.rotation.y += deltaX * 0.01;
-      kneeGroup.rotation.x = Math.max(-0.4, Math.min(0.4, kneeGroup.rotation.x + deltaY * 0.01));
-
-      previousPos = { x: e.clientX, y: e.clientY };
+      const deltaX = e.clientX - prevMouse.x;
+      const deltaY = e.clientY - prevMouse.y;
+      kneeGroup.rotation.y += deltaX * 0.008;
+      kneeGroup.rotation.x += deltaY * 0.005;
+      prevMouse = { x: e.clientX, y: e.clientY };
     };
 
-    const handleMouseUp = () => {
+    const onMouseUp = () => {
       isDragging = false;
     };
 
-    container.addEventListener("mousedown", handleMouseDown);
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
+    const dom = renderer.domElement;
+    dom.addEventListener("mousedown", onMouseDown);
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
 
+    // Animation Loop
     let animId: number;
-    let clock = new THREE.Clock();
-
     const animate = () => {
       animId = requestAnimationFrame(animate);
-      const t = clock.getElapsedTime();
-
       if (!isDragging) {
-        kneeGroup.rotation.y = Math.sin(t * 0.3) * 0.35;
+        kneeGroup.rotation.y += 0.003;
       }
-
       renderer.render(scene, camera);
     };
 
     animate();
 
     const handleResize = () => {
-      if (!container) return;
-      camera.aspect = container.clientWidth / container.clientHeight;
+      if (!mount) return;
+      const w = mount.clientWidth;
+      const h = mount.clientHeight;
+      camera.aspect = w / h;
       camera.updateProjectionMatrix();
-      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setSize(w, h);
     };
-
     window.addEventListener("resize", handleResize);
 
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener("resize", handleResize);
-      container.removeEventListener("mousedown", handleMouseDown);
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-      if (container.contains(renderer.domElement)) {
-        container.removeChild(renderer.domElement);
-      }
+      dom.removeEventListener("mousedown", onMouseDown);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
       renderer.dispose();
+      if (mount) mount.innerHTML = "";
     };
-  }, [kneeMode, visibleLayers]);
-
-  const currentModeInfo = modeDescriptions[kneeMode];
+  }, [selectedMode, showCartilage, showMeniscus, showCruciates]);
 
   return (
-    <div className="w-full rounded-3xl bg-midnight-900/80 border border-slate-800 p-6 lg:p-8 space-y-6">
+    <div className="w-full rounded-3xl bg-midnight-900/90 border border-slate-800 p-6 lg:p-10 space-y-8 shadow-2xl">
       {/* Top Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-slate-800">
         <div>
           <span className="text-xs font-mono uppercase text-recovery-mint font-bold tracking-wider">
-            Signature Experience 02
+            Signature 3D Knee Experience
           </span>
-          <h3 className="text-2xl sm:text-3xl font-display font-bold text-white mt-1">
-            3D Knee & Articular Joint Lab
-          </h3>
+          <h2 className="text-2xl sm:text-4xl font-display font-extrabold text-white tracking-tight mt-1">
+            Tibiofemoral & Ligament Dynamics
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-300 max-w-xl mt-1 leading-relaxed">
+            Transition seamlessly between healthy cartilage, osteoarthritis wear, traumatic ACL tear, and modern prosthetic joint replacement.
+          </p>
         </div>
-        <p className="text-xs sm:text-sm text-slate-300 max-w-md">
-          Compare a healthy knee joint against Osteoarthritis, acute ACL ligament tears, and post-surgical Total Knee Arthroplasty (TKR) implants.
-        </p>
+
+        {/* Mode Selector Tabs */}
+        <div className="flex flex-wrap gap-2">
+          {[
+            { id: "healthy", label: "Healthy Knee" },
+            { id: "osteoarthritis", label: "Osteoarthritis" },
+            { id: "acl-tear", label: "ACL Tear" },
+            { id: "meniscus", label: "Meniscal Tear" },
+            { id: "tkr-implant", label: "TKR Implant" },
+          ].map((mode) => (
+            <button
+              key={mode.id}
+              onClick={() => setSelectedMode(mode.id as KneeMode)}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold transition-all ${
+                selectedMode === mode.id
+                  ? "bg-gradient-to-r from-clinical-cyan to-clinical-teal text-slate-950 shadow-clinical-glow scale-105"
+                  : "bg-slate-950 text-slate-400 border border-slate-800 hover:text-white"
+              }`}
+            >
+              {mode.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Comparative Mode Selector */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-        {(
-          [
-            { id: "healthy", label: "01. Healthy Knee" },
-            { id: "osteoarthritis", label: "02. Osteoarthritis" },
-            { id: "acl-tear", label: "03. ACL Tear" },
-            { id: "tkr-implant", label: "04. TKR Implant" },
-          ] as const
-        ).map((mode) => (
-          <button
-            key={mode.id}
-            onClick={() => setKneeMode(mode.id)}
-            className={`p-3 rounded-xl text-xs font-bold transition-all text-center ${
-              kneeMode === mode.id
-                ? "bg-clinical-cyan text-slate-950 shadow-clinical-glow scale-[1.02]"
-                : "bg-slate-900 text-slate-400 border border-slate-800 hover:text-white"
-            }`}
-          >
-            {mode.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Main 3D Canvas + Clinical Details */}
+      {/* 3D Canvas & Layer Controls */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-        {/* Left 3D Viewport */}
-        <div className="lg:col-span-7 h-[420px] rounded-2xl bg-midnight-950/90 border border-slate-800/90 relative overflow-hidden flex items-center justify-center">
+        <div className="lg:col-span-7 h-[460px] rounded-2xl bg-midnight-950/90 border border-slate-800/90 relative overflow-hidden">
           <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
 
-          {/* Layer toggles */}
-          <div className="absolute top-4 left-4 z-10 flex flex-wrap gap-1.5 p-1 rounded-lg bg-midnight-900/90 border border-slate-800 backdrop-blur-md text-[10px]">
+          {/* Layer Visibility Toggles */}
+          <div className="absolute top-4 left-4 flex flex-wrap gap-1.5 z-10">
             <button
-              onClick={() => setVisibleLayers(prev => ({ ...prev, cartilage: !prev.cartilage }))}
-              className={`px-2 py-1 rounded ${visibleLayers.cartilage ? "bg-clinical-cyan/20 text-clinical-cyan" : "text-slate-400"}`}
+              onClick={() => setShowCartilage(!showCartilage)}
+              className={`px-2.5 py-1 rounded-lg text-[10px] font-mono uppercase font-bold border transition-all ${
+                showCartilage ? "bg-clinical-cyan/20 border-clinical-cyan text-white" : "bg-slate-950 border-slate-800 text-slate-500"
+              }`}
             >
-              Cartilage
+              Cartilage {showCartilage ? "ON" : "OFF"}
             </button>
             <button
-              onClick={() => setVisibleLayers(prev => ({ ...prev, meniscus: !prev.meniscus }))}
-              className={`px-2 py-1 rounded ${visibleLayers.meniscus ? "bg-recovery-mint/20 text-recovery-mint" : "text-slate-400"}`}
+              onClick={() => setShowMeniscus(!showMeniscus)}
+              className={`px-2.5 py-1 rounded-lg text-[10px] font-mono uppercase font-bold border transition-all ${
+                showMeniscus ? "bg-clinical-teal/20 border-clinical-teal text-white" : "bg-slate-950 border-slate-800 text-slate-500"
+              }`}
             >
-              Meniscus
+              Meniscus {showMeniscus ? "ON" : "OFF"}
             </button>
             <button
-              onClick={() => setVisibleLayers(prev => ({ ...prev, cruciates: !prev.cruciates }))}
-              className={`px-2 py-1 rounded ${visibleLayers.cruciates ? "bg-aries-coral/20 text-aries-coral" : "text-slate-400"}`}
+              onClick={() => setShowCruciates(!showCruciates)}
+              className={`px-2.5 py-1 rounded-lg text-[10px] font-mono uppercase font-bold border transition-all ${
+                showCruciates ? "bg-recovery-mint/20 border-recovery-mint text-white" : "bg-slate-950 border-slate-800 text-slate-500"
+              }`}
             >
-              ACL/PCL
+              ACL/PCL {showCruciates ? "ON" : "OFF"}
             </button>
           </div>
         </div>
 
-        {/* Right Clinical Inspection */}
-        <div className="lg:col-span-5 space-y-4 p-6 rounded-2xl bg-midnight-950/60 border border-slate-800/80">
-          <div>
-            <span className={`text-xs font-mono uppercase font-bold ${currentModeInfo.statusColor}`}>
-              {currentModeInfo.status}
+        {/* Right Info Box */}
+        <div className="lg:col-span-5 space-y-4">
+          <div className="p-6 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-3">
+            <span className="text-[10px] font-mono uppercase text-clinical-cyan font-bold tracking-wider">
+              Anatomical Pathology Profile
             </span>
-            <h4 className="text-xl font-display font-bold text-white mt-1">{currentModeInfo.title}</h4>
-          </div>
-
-          <p className="text-xs text-slate-300 leading-relaxed">
-            {currentModeInfo.description}
-          </p>
-
-          <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs space-y-1.5">
-            <span className="font-semibold text-white flex items-center gap-1.5">
-              <Activity className="w-3.5 h-3.5 text-clinical-cyan" /> Rehabilitation Focus:
-            </span>
-            <p className="text-slate-300">{currentModeInfo.rehabKey}</p>
+            <h3 className="text-xl font-display font-bold text-white capitalize">
+              {selectedMode.replace("-", " ")}
+            </h3>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              {selectedMode === "healthy" && "Pristine hyaline cartilage cushion with intact meniscus and robust anterior cruciate ligament providing rotational stability."}
+              {selectedMode === "osteoarthritis" && "Progressive loss of articular cartilage, narrowing of joint space, and subchondral bone sclerosis causing mechanical pain and crepitus."}
+              {selectedMode === "acl-tear" && "Rupture of the anterior cruciate ligament resulting in anterior tibial translation, rotational knee instability, and secondary meniscal loading."}
+              {selectedMode === "meniscus" && "Focal horizontal or radial tear within fibrocartilage cushion, leading to joint line tenderness, clicking, and mechanical locking."}
+              {selectedMode === "tkr-implant" && "Surgically resurfaced femoral and tibial components with ultra-high-molecular-weight polyethylene spacer restoring neutral mechanical alignment."}
+            </p>
           </div>
         </div>
       </div>

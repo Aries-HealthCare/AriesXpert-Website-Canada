@@ -1,326 +1,309 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import * as THREE from "three";
-import { Layers, Activity, AlertCircle, Sparkles, CheckCircle2, RotateCw } from "lucide-react";
+import { ShieldCheck, Activity, AlertCircle, Sparkles, RefreshCcw, Layers } from "lucide-react";
+
+type SpineLevel = "cervical" | "thoracic" | "lumbar" | "l4-l5" | "l5-s1";
+type SpinePathology = "normal" | "bulge" | "protrusion" | "herniation" | "degenerative" | "compression";
 
 export const SpineViewer3D: React.FC = () => {
   const mountRef = useRef<HTMLDivElement>(null);
-  const [selectedLevel, setSelectedLevel] = useState<"C5-C6" | "T4-T5" | "L4-L5" | "L5-S1">("L4-L5");
-  const [isHerniated, setIsHerniated] = useState(false);
+  const [selectedLevel, setSelectedLevel] = useState<SpineLevel>("l4-l5");
+  const [selectedPathology, setSelectedPathology] = useState<SpinePathology>("herniation");
   const [isDecompressed, setIsDecompressed] = useState(false);
 
-  const levelDetails = {
-    "C5-C6": {
-      name: "C5–C6 Cervical Segment",
-      region: "Neck / Cervical Spine",
-      nerveInvolved: "C6 Nerve Root (Biceps, wrist extensors, thumb/index sensation)",
-      conditions: ["Cervical Radiculopathy", "Disc Herniation", "Cervical Spondylosis"],
-      physioIntervention: "Gentle manual traction, neural glides, and deep cervical flexor retraining."
-    },
-    "T4-T5": {
-      name: "T4–T5 Thoracic Segment",
-      region: "Mid-Back / Thoracic Spine & Rib Articulation",
-      nerveInvolved: "T4 Intercostal Nerve (Ribcage and postural sensation)",
-      conditions: ["Thoracic Kyphosis", "Costovertebral Joint Dysfunction", "Upper Crossed Syndrome"],
-      physioIntervention: "Thoracic extension foam roller mobilizations and scapular retractor strengthening."
-    },
-    "L4-L5": {
-      name: "L4–L5 Lumbar Segment",
-      region: "Lower Back / Most Common Site of Disc Herniation",
-      nerveInvolved: "L5 Nerve Root (Tibialis anterior, great toe extension, lateral calf sensation)",
-      conditions: ["L4-L5 Disc Herniation", "Sciatica", "Lumbar Canal Stenosis", "Spondylolisthesis"],
-      physioIntervention: "McKenzie extension exercises, core multifidus stabilization, and lumbar decompression."
-    },
-    "L5-S1": {
-      name: "L5–S1 Lumbosacral Junction",
-      region: "Base of Spine & Sacral Transition",
-      nerveInvolved: "S1 Nerve Root (Achilles reflex, gastrocnemius plantarflexion, lateral foot)",
-      conditions: ["L5-S1 Disc Bulge", "Sacroiliac (SI) Joint Dysfunction", "Piriformis Syndrome"],
-      physioIntervention: "Pelvic symmetry alignment, neural tension flossing, and gluteus medius loading."
-    }
-  };
-
   useEffect(() => {
-    const container = mountRef.current;
-    if (!container) return;
+    const mount = mountRef.current;
+    if (!mount) return;
+
+    const width = mount.clientWidth || 600;
+    const height = mount.clientHeight || 450;
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x070b12, 0.04);
+    scene.fog = new THREE.FogExp2(0x030712, 0.04);
 
-    const camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.1, 50);
-    camera.position.set(0, 0, 5.5);
+    const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 50);
+    camera.position.set(0, 0, 6.5);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    container.appendChild(renderer.domElement);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.3;
+    mount.innerHTML = "";
+    mount.appendChild(renderer.domElement);
 
-    // Lighting
-    const ambientLight = new THREE.AmbientLight(0x0ea5e9, 1.0);
-    scene.add(ambientLight);
+    // Lights
+    const ambient = new THREE.AmbientLight(0x0f2b48, 1.4);
+    scene.add(ambient);
 
-    const keyLight = new THREE.DirectionalLight(0x00f2fe, 2.5);
-    keyLight.position.set(4, 4, 4);
-    scene.add(keyLight);
+    const dirLight = new THREE.DirectionalLight(0x00f2fe, 3.0);
+    dirLight.position.set(4, 5, 4);
+    scene.add(dirLight);
 
-    const rimLight = new THREE.DirectionalLight(0x10b981, 1.5);
-    rimLight.position.set(-4, -2, -3);
-    scene.add(rimLight);
+    const redLight = new THREE.PointLight(
+      selectedPathology === "normal" ? 0x00f2fe : 0xef4444, 
+      selectedPathology === "normal" ? 0.8 : 3.5, 
+      10
+    );
+    redLight.position.set(0.6, 0, 0.5);
+    scene.add(redLight);
 
-    // Spine 3D Model Group
     const spineGroup = new THREE.Group();
     scene.add(spineGroup);
 
-    // Vertebrae material
-    const boneMaterial = new THREE.MeshPhysicalMaterial({
-      color: 0xf1f5f9,
-      roughness: 0.25,
-      metalness: 0.1,
-      transmission: 0.3,
-      thickness: 0.4,
-      emissive: 0x00f2fe,
-      emissiveIntensity: 0.1,
-    });
-
-    const discMaterial = new THREE.MeshStandardMaterial({
-      color: isHerniated ? 0xef4444 : isDecompressed ? 0x10b981 : 0x00f2fe,
-      emissive: isHerniated ? 0xef4444 : isDecompressed ? 0x10b981 : 0x00f2fe,
-      emissiveIntensity: 0.6,
+    // Vertebrae Materials
+    const boneMaterial = new THREE.MeshStandardMaterial({
+      color: 0xecfeff,
       roughness: 0.3,
+      metalness: 0.2,
+      emissive: 0x0369a1,
+      emissiveIntensity: 0.3,
     });
 
-    const nerveMaterial = new THREE.MeshStandardMaterial({
-      color: 0xf59e0b,
-      emissive: 0xf59e0b,
-      emissiveIntensity: 0.7,
+    const discNormalMat = new THREE.MeshStandardMaterial({
+      color: 0x38bdf8,
+      roughness: 0.4,
+      metalness: 0.1,
+      transparent: true,
+      opacity: 0.85,
     });
 
-    // Construct 3-Vertebrae Functional Spinal Unit (FSU)
-    const upperVertebra = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.75, 0.45, 24), boneMaterial);
-    upperVertebra.position.y = 0.8 + (isDecompressed ? 0.2 : 0);
-    spineGroup.add(upperVertebra);
+    const discHerniatedMat = new THREE.MeshStandardMaterial({
+      color: 0xef4444,
+      roughness: 0.2,
+      emissive: 0xdc2626,
+      emissiveIntensity: 0.8,
+    });
 
-    // Spinous process (posterior spine spike)
-    const spinousUpper = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.8, 16), boneMaterial);
-    spinousUpper.position.set(0, 0.8 + (isDecompressed ? 0.2 : 0), -0.7);
-    spinousUpper.rotation.x = -Math.PI / 3;
-    spineGroup.add(spinousUpper);
+    const nerveRootMat = new THREE.MeshBasicMaterial({
+      color: selectedPathology === "compression" || selectedPathology === "herniation" ? 0xef4444 : 0xfacc15,
+      wireframe: true,
+    });
 
-    // Intervertebral Disc
-    const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.72, isDecompressed ? 0.32 : 0.22, 24), discMaterial);
-    disc.position.y = 0.4;
-    spineGroup.add(disc);
+    // Construct 2 Vertebrae (Superior L4 & Inferior L5)
+    // 1. Superior Vertebral Body (L4)
+    const superiorVGeo = new THREE.CylinderGeometry(1.1, 1.15, 0.75, 24);
+    superiorVGeo.scale(1.2, 1.0, 1.0);
+    const superiorVMesh = new THREE.Mesh(superiorVGeo, boneMaterial);
+    superiorVMesh.position.y = isDecompressed ? 1.0 : 0.75;
+    spineGroup.add(superiorVMesh);
 
-    // Herniation Bulge extrusion (if toggled)
-    if (isHerniated) {
-      const herniationBulge = new THREE.Mesh(
-        new THREE.SphereGeometry(0.22, 16, 16),
-        new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0xef4444, emissiveIntensity: 1.0 })
-      );
-      herniationBulge.position.set(0.35, 0.38, -0.45);
-      spineGroup.add(herniationBulge);
+    // Posterior Spinous Process L4
+    const spinousGeo = new THREE.ConeGeometry(0.35, 1.1, 12);
+    const spinousMeshL4 = new THREE.Mesh(spinousGeo, boneMaterial);
+    spinousMeshL4.rotation.x = -Math.PI / 2.2;
+    spinousMeshL4.position.set(0, superiorVMesh.position.y, -1.0);
+    spineGroup.add(spinousMeshL4);
+
+    // 2. Inferior Vertebral Body (L5)
+    const inferiorVGeo = new THREE.CylinderGeometry(1.2, 1.25, 0.75, 24);
+    inferiorVGeo.scale(1.2, 1.0, 1.0);
+    const inferiorVMesh = new THREE.Mesh(inferiorVGeo, boneMaterial);
+    inferiorVMesh.position.y = isDecompressed ? -1.0 : -0.75;
+    spineGroup.add(inferiorVMesh);
+
+    // Posterior Spinous Process L5
+    const spinousMeshL5 = new THREE.Mesh(spinousGeo, boneMaterial);
+    spinousMeshL5.rotation.x = -Math.PI / 2.2;
+    spinousMeshL5.position.set(0, inferiorVMesh.position.y, -1.0);
+    spineGroup.add(spinousMeshL5);
+
+    // 3. Intervertebral Disc
+    const discHeight = selectedPathology === "degenerative" ? (isDecompressed ? 0.35 : 0.2) : (isDecompressed ? 0.6 : 0.45);
+    const discGeo = new THREE.CylinderGeometry(1.05, 1.1, discHeight, 24);
+    discGeo.scale(1.18, 1.0, 1.0);
+    const discMesh = new THREE.Mesh(
+      discGeo, 
+      selectedPathology === "herniation" || selectedPathology === "compression" ? discHerniatedMat : discNormalMat
+    );
+    discMesh.position.y = 0;
+    spineGroup.add(discMesh);
+
+    // 4. Herniated Disc Extrusion Node (Posterolateral)
+    if (selectedPathology === "herniation" || selectedPathology === "protrusion" || selectedPathology === "bulge") {
+      const extrusionSize = selectedPathology === "herniation" ? 0.35 : selectedPathology === "protrusion" ? 0.25 : 0.15;
+      const extrusionGeo = new THREE.SphereGeometry(extrusionSize, 16, 16);
+      const extrusionMesh = new THREE.Mesh(extrusionGeo, discHerniatedMat);
+      extrusionMesh.position.set(0.85, 0, -0.4);
+      spineGroup.add(extrusionMesh);
     }
 
-    // Lower Vertebra
-    const lowerVertebra = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.8, 0.5, 24), boneMaterial);
-    lowerVertebra.position.y = 0;
-    spineGroup.add(lowerVertebra);
+    // 5. Exiting Spinal Nerve Root (L4 / L5 Traversing Nerve)
+    const nerveCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0, 0.8, -0.4),
+      new THREE.Vector3(0.5, 0.3, -0.45),
+      new THREE.Vector3(0.9, -0.1, -0.5), // Passes right by disc
+      new THREE.Vector3(1.3, -0.6, -0.6),
+      new THREE.Vector3(1.6, -1.2, -0.7),
+    ]);
+    const nerveGeo = new THREE.TubeGeometry(nerveCurve, 20, 0.08, 12, false);
+    const nerveMesh = new THREE.Mesh(nerveGeo, nerveRootMat);
+    spineGroup.add(nerveMesh);
 
-    const spinousLower = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.85, 16), boneMaterial);
-    spinousLower.position.set(0, 0, -0.75);
-    spinousLower.rotation.x = -Math.PI / 3;
-    spineGroup.add(spinousLower);
-
-    // Spinal Cord & Exiting Nerve Roots
-    const spinalCord = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 2.2, 16), nerveMaterial);
-    spinalCord.position.set(0, 0.4, -0.35);
-    spineGroup.add(spinalCord);
-
-    // Exiting bilateral nerve roots
-    const nerveRootL = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.05, 0.8, 12), nerveMaterial);
-    nerveRootL.position.set(0.45, 0.35, -0.35);
-    nerveRootL.rotation.z = Math.PI / 3;
-    spineGroup.add(nerveRootL);
-
-    const nerveRootR = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.05, 0.8, 12), nerveMaterial);
-    nerveRootR.position.set(-0.45, 0.35, -0.35);
-    nerveRootR.rotation.z = -Math.PI / 3;
-    spineGroup.add(nerveRootR);
-
-    // Interactive Drag / Orbit
+    // Interaction / Drag
     let isDragging = false;
-    let previousPos = { x: 0, y: 0 };
+    let prevMouse = { x: 0, y: 0 };
 
-    const handleMouseDown = (e: MouseEvent) => {
+    const onMouseDown = (e: MouseEvent) => {
       isDragging = true;
-      previousPos = { x: e.clientX, y: e.clientY };
+      prevMouse = { x: e.clientX, y: e.clientY };
     };
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const onMouseMove = (e: MouseEvent) => {
       if (!isDragging) return;
-      const deltaX = e.clientX - previousPos.x;
-      const deltaY = e.clientY - previousPos.y;
-
-      spineGroup.rotation.y += deltaX * 0.01;
-      spineGroup.rotation.x = Math.max(-0.5, Math.min(0.5, spineGroup.rotation.x + deltaY * 0.01));
-
-      previousPos = { x: e.clientX, y: e.clientY };
+      const deltaX = e.clientX - prevMouse.x;
+      const deltaY = e.clientY - prevMouse.y;
+      spineGroup.rotation.y += deltaX * 0.008;
+      spineGroup.rotation.x += deltaY * 0.005;
+      prevMouse = { x: e.clientX, y: e.clientY };
     };
 
-    const handleMouseUp = () => {
+    const onMouseUp = () => {
       isDragging = false;
     };
 
-    container.addEventListener("mousedown", handleMouseDown);
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
+    const dom = renderer.domElement;
+    dom.addEventListener("mousedown", onMouseDown);
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
 
-    let animationId: number;
-    let clock = new THREE.Clock();
-
+    // Animation Loop
+    let animId: number;
     const animate = () => {
-      animationId = requestAnimationFrame(animate);
-      const time = clock.getElapsedTime();
-
+      animId = requestAnimationFrame(animate);
       if (!isDragging) {
-        spineGroup.rotation.y = Math.sin(time * 0.4) * 0.3 + 0.3; // Angle toward nerve root
+        spineGroup.rotation.y += 0.003;
       }
-
       renderer.render(scene, camera);
     };
 
     animate();
 
     const handleResize = () => {
-      if (!container) return;
-      camera.aspect = container.clientWidth / container.clientHeight;
+      if (!mount) return;
+      const w = mount.clientWidth;
+      const h = mount.clientHeight;
+      camera.aspect = w / h;
       camera.updateProjectionMatrix();
-      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setSize(w, h);
     };
-
     window.addEventListener("resize", handleResize);
 
     return () => {
-      cancelAnimationFrame(animationId);
+      cancelAnimationFrame(animId);
       window.removeEventListener("resize", handleResize);
-      container.removeEventListener("mousedown", handleMouseDown);
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-      if (container.contains(renderer.domElement)) {
-        container.removeChild(renderer.domElement);
-      }
+      dom.removeEventListener("mousedown", onMouseDown);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
       renderer.dispose();
+      if (mount) mount.innerHTML = "";
     };
-  }, [isHerniated, isDecompressed, selectedLevel]);
-
-  const currentLevel = levelDetails[selectedLevel];
+  }, [selectedLevel, selectedPathology, isDecompressed]);
 
   return (
-    <div className="w-full rounded-3xl bg-midnight-900/80 border border-slate-800 p-6 lg:p-8 space-y-6">
+    <div className="w-full rounded-3xl bg-midnight-900/90 border border-slate-800 p-6 lg:p-10 space-y-8 shadow-2xl">
       {/* Top Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-slate-800">
         <div>
           <span className="text-xs font-mono uppercase text-clinical-cyan font-bold tracking-wider">
-            Signature Experience 01
+            Signature 3D Spine Experience
           </span>
-          <h3 className="text-2xl sm:text-3xl font-display font-bold text-white mt-1">
-            3D Spine & Intervertebral Disc Lab
-          </h3>
+          <h2 className="text-2xl sm:text-4xl font-display font-extrabold text-white tracking-tight mt-1">
+            Vertebrae, Disc & Nerve Mechanics
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-300 max-w-xl mt-1 leading-relaxed">
+            Inspect intervertebral disc deformation, foraminal stenosis, and targeted mechanical decompression at C1–S1.
+          </p>
         </div>
-        <p className="text-xs sm:text-sm text-slate-300 max-w-md">
-          Rotate the functional spinal unit in 3D. Toggle disc herniation and decompression to understand how mechanical therapy relieves radiating sciatic nerve pressure.
-        </p>
+
+        {/* Level Selector */}
+        <div className="flex flex-wrap gap-2">
+          {(["cervical", "thoracic", "lumbar", "l4-l5", "l5-s1"] as SpineLevel[]).map((lvl) => (
+            <button
+              key={lvl}
+              onClick={() => setSelectedLevel(lvl)}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-mono uppercase font-bold transition-all ${
+                selectedLevel === lvl
+                  ? "bg-clinical-cyan text-slate-950 shadow-clinical-glow scale-105"
+                  : "bg-slate-950 text-slate-400 border border-slate-800 hover:text-white"
+              }`}
+            >
+              {lvl}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Level Selector Pills */}
-      <div className="flex flex-wrap gap-2">
-        {(["C5-C6", "T4-T5", "L4-L5", "L5-S1"] as const).map((lvl) => (
-          <button
-            key={lvl}
-            onClick={() => setSelectedLevel(lvl)}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              selectedLevel === lvl
-                ? "bg-clinical-cyan text-slate-950 shadow-clinical-glow scale-105"
-                : "bg-slate-900 text-slate-400 border border-slate-800 hover:border-slate-700 hover:text-white"
-            }`}
-          >
-            {lvl} ({levelDetails[lvl].region.split("/")[0]})
-          </button>
-        ))}
-      </div>
-
-      {/* 3D Viewport + Pathology Interactive Controls */}
+      {/* Main Grid: 3D Spine Canvas & Pathology Matrix */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-        {/* Left 3D Canvas */}
-        <div className="lg:col-span-7 h-[420px] rounded-2xl bg-midnight-950/90 border border-slate-800/90 relative overflow-hidden flex items-center justify-center">
+        {/* Left Column: 3D Canvas */}
+        <div className="lg:col-span-7 h-[460px] rounded-2xl bg-midnight-950/90 border border-slate-800/90 relative overflow-hidden">
           <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
 
-          {/* Interactive Pathology Toggles */}
-          <div className="absolute bottom-4 inset-x-4 z-10 flex flex-wrap items-center justify-center gap-2">
-            <button
-              onClick={() => {
-                setIsHerniated(!isHerniated);
-                if (!isHerniated) setIsDecompressed(false);
-              }}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                isHerniated
-                  ? "bg-pain-crimson text-white shadow-pain-glow ring-2 ring-pain-crimson"
-                  : "bg-slate-900/90 text-slate-300 border border-slate-700 hover:bg-slate-800"
-              }`}
-            >
-              <AlertCircle className="w-3.5 h-3.5" />
-              <span>Simulate Disc Herniation</span>
-            </button>
+          {/* Interactive Overlay Badges */}
+          <div className="absolute top-4 left-4 flex flex-col gap-2 pointer-events-none">
+            <span className="px-3 py-1 rounded-full bg-slate-950/80 backdrop-blur-md border border-slate-800 text-[10px] font-mono text-slate-300">
+              LEVEL: <strong className="text-white uppercase">{selectedLevel}</strong>
+            </span>
+            <span className={`px-3 py-1 rounded-full backdrop-blur-md border text-[10px] font-mono font-bold ${
+              selectedPathology === "normal"
+                ? "bg-recovery-mint/20 border-recovery-mint/40 text-recovery-mint"
+                : "bg-pain-crimson/20 border-pain-crimson/40 text-pain-crimson"
+            }`}>
+              STATUS: {selectedPathology.toUpperCase()}
+            </span>
+          </div>
 
+          <div className="absolute bottom-4 right-4 z-10">
             <button
-              onClick={() => {
-                setIsDecompressed(!isDecompressed);
-                if (!isDecompressed) setIsHerniated(false);
-              }}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              onClick={() => setIsDecompressed(!isDecompressed)}
+              className={`px-4 py-2 rounded-xl text-xs font-bold font-mono transition-all flex items-center gap-1.5 shadow-glass ${
                 isDecompressed
-                  ? "bg-recovery-mint text-slate-950 shadow-recovery-glow ring-2 ring-recovery-mint"
-                  : "bg-slate-900/90 text-slate-300 border border-slate-700 hover:bg-slate-800"
+                  ? "bg-recovery-mint text-slate-950 shadow-recovery-glow"
+                  : "bg-slate-900 border border-slate-700 text-slate-200 hover:border-clinical-cyan"
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Simulate Decompression</span>
+              <RefreshCcw className={`w-3.5 h-3.5 ${isDecompressed ? "animate-spin" : ""}`} />
+              <span>{isDecompressed ? "Decompression Active" : "Simulate Decompression"}</span>
             </button>
           </div>
         </div>
 
-        {/* Right Clinical Inspection Data */}
-        <div className="lg:col-span-5 space-y-4 p-6 rounded-2xl bg-midnight-950/60 border border-slate-800/80">
-          <div>
-            <span className="text-[10px] font-mono uppercase text-clinical-cyan font-bold tracking-wider">
-              Segment Analysis
-            </span>
-            <h4 className="text-xl font-display font-bold text-white mt-0.5">{currentLevel.name}</h4>
-            <p className="text-xs text-slate-400">{currentLevel.region}</p>
-          </div>
+        {/* Right Column: Comparative Pathology Modes */}
+        <div className="lg:col-span-5 space-y-4">
+          <h3 className="text-xs font-mono uppercase text-slate-400 font-bold tracking-wider">
+            Select Pathology Simulation:
+          </h3>
 
-          <div className="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800 text-xs space-y-1">
-            <span className="font-semibold text-clinical-cyan block">Nerve Root Interface:</span>
-            <p className="text-slate-300">{currentLevel.nerveInvolved}</p>
-          </div>
-
-          <div>
-            <span className="text-xs font-mono uppercase text-slate-400 block mb-1.5">Common Conditions:</span>
-            <div className="flex flex-wrap gap-1.5">
-              {currentLevel.conditions.map((c) => (
-                <span key={c} className="px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-[11px] text-slate-300">
-                  {c}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div className="p-3.5 rounded-xl bg-clinical-cyan/10 border border-clinical-cyan/30 text-xs space-y-1">
-            <span className="font-semibold text-clinical-cyan flex items-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5" /> Physiotherapy Target:
-            </span>
-            <p className="text-slate-300">{currentLevel.physioIntervention}</p>
+          <div className="space-y-2.5">
+            {[
+              { id: "normal", label: "Normal Healthy Disc", desc: "Hydrated nucleus pulposus with intact annular rings and wide neural foramen." },
+              { id: "bulge", label: "Disc Bulge", desc: "Generalized extension of disc margin beyond vertebral borders without focal annular rupture." },
+              { id: "protrusion", label: "Disc Protrusion", desc: "Focal displacement where the base of extruded material is wider than any other dimension." },
+              { id: "herniation", label: "Disc Herniation (Extrusion)", desc: "Nuclear material breaks through annular fibers, creating direct impingement on the nerve root." },
+              { id: "degenerative", label: "Degenerative Disc Disease", desc: "Loss of disc height, dehydration, and osteophytic spurring causing foraminal narrowing." },
+              { id: "compression", label: "Nerve Root Compression", desc: "Inflammatory chemical irritation and mechanical entrapment causing radiating sciatica symptoms." },
+            ].map((path) => (
+              <button
+                key={path.id}
+                onClick={() => setSelectedPathology(path.id as SpinePathology)}
+                className={`w-full p-3.5 rounded-xl border text-left transition-all ${
+                  selectedPathology === path.id
+                    ? "bg-slate-800/90 border-clinical-cyan text-white shadow-clinical-glow ring-1 ring-clinical-cyan"
+                    : "bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-white">{path.label}</h4>
+                  <span className={`w-2 h-2 rounded-full ${
+                    path.id === "normal" ? "bg-recovery-mint" : "bg-pain-crimson"
+                  }`} />
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">{path.desc}</p>
+              </button>
+            ))}
           </div>
         </div>
       </div>
