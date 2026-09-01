@@ -25,7 +25,9 @@ import {
   Compass, 
   Activity, 
   ShieldCheck, 
-  HeartPulse 
+  HeartPulse,
+  Sparkles,
+  Globe
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import BookAppointmentButton from "../book-appointment-button";
@@ -56,7 +58,7 @@ function LocationSelector({ current }: { current: string | null }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-64 glassmorphic p-2" align="start">
         <DropdownMenuLabel className="text-[11px] font-mono uppercase text-muted-foreground tracking-wider">
-          Canadian Metropolitan Hubs
+          Canadian Service Hubs
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {CANADIAN_PROVINCES.flatMap((p) =>
@@ -90,13 +92,13 @@ export default function Header() {
           <ThemeToggle />
         </div>
 
-        {/* Logo Section */}
-        <div className="absolute left-1/2 -translate-x-1/2 xl:relative xl:left-0 xl:translate-x-0 flex items-center shrink-0">
-          <Link href="/" className="flex items-center group py-1" prefetch={false}>
+        {/* Brand Logo & Company Title */}
+        <div className="absolute left-1/2 -translate-x-1/2 xl:relative xl:left-0 xl:translate-x-0 flex items-center gap-3 shrink-0">
+          <Link href="/" className="flex items-center gap-3 group py-1" prefetch={false}>
             <div className="relative h-12 w-40 sm:w-48 md:h-14 md:w-56 xl:h-16 xl:w-60 2xl:w-72 transition-all duration-300 group-hover:opacity-95">
               <Image
                 src="/logo-light.png"
-                alt="Aries PhysioCare"
+                alt="Aries PhysioCare - Canada"
                 fill
                 sizes="(max-width: 640px) 160px, (max-width: 1024px) 224px, 288px"
                 className="object-contain block dark:hidden object-center xl:object-left"
@@ -104,7 +106,7 @@ export default function Header() {
               />
               <Image
                 src="/logo-dark.png"
-                alt="Aries PhysioCare"
+                alt="Aries PhysioCare - Canada"
                 fill
                 sizes="(max-width: 640px) 160px, (max-width: 1024px) 224px, 288px"
                 className="object-contain hidden dark:block object-center xl:object-left"
@@ -112,6 +114,11 @@ export default function Header() {
               />
             </div>
           </Link>
+          <div className="hidden min-[1400px]:flex items-center">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400">
+              🍁 Canada
+            </span>
+          </div>
         </div>
 
         {/* Navigation Menu (Desktop Only) */}
@@ -261,21 +268,24 @@ function MobileMenu({ currentLocationName }: { currentLocationName: string | nul
       <SheetContent side="right" className="w-[300px] bg-background/95 backdrop-blur-md flex flex-col p-0 border-l">
         <SheetHeader className="p-6 pb-4 border-b">
           <SheetTitle>
-            <Link href="/" className="flex items-center" prefetch={false}>
+            <Link href="/" className="flex flex-col gap-1" prefetch={false}>
               <div className="relative h-12 w-48">
                 <Image
                   src="/logo-light.png"
-                  alt="Aries PhysioCare"
+                  alt="Aries PhysioCare - Canada"
                   fill
                   className="object-contain block dark:hidden object-left"
                 />
                 <Image
                   src="/logo-dark.png"
-                  alt="Aries PhysioCare"
+                  alt="Aries PhysioCare - Canada"
                   fill
                   className="object-contain hidden dark:block object-left"
                 />
               </div>
+              <span className="text-[10px] font-mono text-muted-foreground font-semibold">
+                Aries PhysioCare - Canada
+              </span>
             </Link>
           </SheetTitle>
         </SheetHeader>
