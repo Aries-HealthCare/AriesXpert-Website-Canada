@@ -2,15 +2,13 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { 
-  Activity, 
-  MapPin, 
-  Phone, 
-  Mail, 
-  ShieldCheck, 
   Lock, 
   CheckCircle2, 
   PhoneCall, 
+  Mail,
+  MapPin,
   Facebook, 
   Twitter, 
   Instagram, 
@@ -26,41 +24,49 @@ export default function Footer() {
         {/* Top 4 Columns */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 pb-12 border-b border-border/20">
           
-          {/* Brand Vision */}
-          <div className="lg:col-span-4 space-y-6">
-            <Link href="/" className="flex items-center gap-3" prefetch={false}>
-              <div className="w-10 h-10 rounded-2xl bg-primary/10 border border-primary/30 flex items-center justify-center shadow-sm">
-                <Activity className="w-5 h-5 text-primary" />
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-headline font-black text-xl tracking-tight text-foreground">
-                  ARIES<span className="premium-gradient-text">XPERT</span>
-                </span>
-                <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/30 text-red-500">
-                  🍁 Canada
-                </span>
+          {/* Brand Section */}
+          <div className="lg:col-span-4 space-y-6 flex flex-col items-center md:items-start">
+            <Link href="/" className="flex items-center gap-3 group w-full" prefetch={false}>
+              <div className="relative h-14 w-52 sm:h-16 sm:w-64 md:h-16 md:w-72 transition-all duration-300 group-hover:opacity-95">
+                {/* Light Mode Logo */}
+                <Image
+                  src="/logo-light.png"
+                  alt="Aries PhysioCare"
+                  fill
+                  sizes="(max-width: 640px) 208px, 288px"
+                  className="object-contain block dark:hidden object-center md:object-left"
+                />
+                {/* Dark Mode Logo */}
+                <Image
+                  src="/logo-dark.png"
+                  alt="Aries PhysioCare"
+                  fill
+                  sizes="(max-width: 640px) 208px, 288px"
+                  className="object-contain hidden dark:block object-center md:object-left"
+                />
               </div>
             </Link>
 
-            <p className="text-sm leading-relaxed max-w-sm">
-              Bridging hospital and home across Canada. We deliver hospital-grade registered physiotherapy, advanced 3D biomechanical analysis, and direct insurance billing.
+            <p className="text-muted-foreground text-sm leading-relaxed max-w-sm">
+              Bridging the gap between hospital and home across Canada. We deliver hospital-grade registered physiotherapy, advanced 3D biomechanical analysis, and direct insurance billing.
             </p>
 
-            <div className="flex gap-3">
+            <div className="flex gap-4">
               {[
                 { icon: Facebook, href: "https://facebook.com/ariesxpertcanada", label: "Facebook" },
                 { icon: Twitter, href: "https://twitter.com/ariesxpertcanada", label: "Twitter" },
                 { icon: Instagram, href: "https://instagram.com/ariesxpertcanada", label: "Instagram" },
                 { icon: Linkedin, href: "https://linkedin.com/company/ariesxpert-canada", label: "LinkedIn" },
+                { icon: Youtube, href: "https://youtube.com/@ariesphysiocare", label: "YouTube" },
               ].map((social) => (
                 <Link
                   key={social.label}
                   href={social.href}
-                  className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-all shadow-sm"
+                  className="w-10 h-10 rounded-xl bg-secondary/30 flex items-center justify-center hover:bg-primary hover:text-primary-foreground hover:-translate-y-1 transition-all duration-300 shadow-sm"
                   aria-label={social.label}
                   prefetch={false}
                 >
-                  <social.icon className="h-4 w-4" />
+                  <social.icon className="h-5 w-5" />
                 </Link>
               ))}
             </div>
@@ -81,13 +87,13 @@ export default function Footer() {
           <div className="lg:col-span-3 space-y-6">
             <h3 className="font-headline font-bold text-xs text-primary uppercase tracking-[0.2em]">3D Labs &amp; Services</h3>
             <ul className="space-y-3 text-sm">
-              <li><Link href="/anatomy-lab" className="hover:text-primary transition-colors" prefetch={false}>3D Anatomy Lab</Link></li>
-              <li><Link href="/movement-lab" className="hover:text-primary transition-colors" prefetch={false}>Kinematics Movement Lab</Link></li>
-              <li><Link href="/surgery-and-rehabilitation" className="hover:text-primary transition-colors" prefetch={false}>Surgery to Movement</Link></li>
-              <li><Link href="/services/in-home-physiotherapy" className="hover:text-primary transition-colors font-medium text-foreground" prefetch={false}>In-Home Physiotherapy</Link></li>
-              <li><Link href="/services/virtual-physiotherapy" className="hover:text-primary transition-colors font-medium text-foreground" prefetch={false}>Virtual Tele-Rehab</Link></li>
-              <li><Link href="/services/post-surgical-rehabilitation" className="hover:text-primary transition-colors" prefetch={false}>Post-Op Joint Recovery</Link></li>
-              <li><Link href="/services/sports-rehabilitation" className="hover:text-primary transition-colors" prefetch={false}>Sports &amp; Concussion</Link></li>
+              <li><Link href="/anatomy-lab" className="text-muted-foreground hover:text-primary transition-colors inline-block hover:translate-x-1 duration-200" prefetch={false}>3D Anatomy Lab</Link></li>
+              <li><Link href="/movement-lab" className="text-muted-foreground hover:text-primary transition-colors inline-block hover:translate-x-1 duration-200" prefetch={false}>Kinematics Movement Lab</Link></li>
+              <li><Link href="/surgery-and-rehabilitation" className="text-muted-foreground hover:text-primary transition-colors inline-block hover:translate-x-1 duration-200" prefetch={false}>Surgery to Movement</Link></li>
+              <li><Link href="/services/in-home-physiotherapy" className="text-muted-foreground hover:text-primary transition-colors inline-block hover:translate-x-1 duration-200" prefetch={false}>In-Home Physiotherapy</Link></li>
+              <li><Link href="/services/virtual-physiotherapy" className="text-muted-foreground hover:text-primary transition-colors inline-block hover:translate-x-1 duration-200" prefetch={false}>Virtual Tele-Rehab</Link></li>
+              <li><Link href="/services/post-surgical-rehabilitation" className="text-muted-foreground hover:text-primary transition-colors inline-block hover:translate-x-1 duration-200" prefetch={false}>Post-Op Joint Recovery</Link></li>
+              <li><Link href="/services/sports-rehabilitation" className="text-muted-foreground hover:text-primary transition-colors inline-block hover:translate-x-1 duration-200" prefetch={false}>Sports &amp; Concussion</Link></li>
             </ul>
           </div>
 
@@ -95,13 +101,13 @@ export default function Footer() {
           <div className="lg:col-span-2 space-y-6">
             <h3 className="font-headline font-bold text-xs text-primary uppercase tracking-[0.2em]">Coverage &amp; Plans</h3>
             <ul className="space-y-3 text-sm">
-              <li><Link href="/locations/ontario/toronto" className="hover:text-primary transition-colors" prefetch={false}>Toronto &amp; GTA</Link></li>
-              <li><Link href="/locations/british-columbia/vancouver" className="hover:text-primary transition-colors" prefetch={false}>Metro Vancouver</Link></li>
-              <li><Link href="/locations/alberta/calgary" className="hover:text-primary transition-colors" prefetch={false}>Calgary &amp; Area</Link></li>
-              <li><Link href="/locations/ontario/ottawa" className="hover:text-primary transition-colors" prefetch={false}>Ottawa &amp; NCR</Link></li>
-              <li><Link href="/locations" className="hover:text-primary transition-colors" prefetch={false}>All Coverage Hubs</Link></li>
-              <li><Link href="/faq" className="hover:text-primary transition-colors" prefetch={false}>Direct Billing FAQ</Link></li>
-              <li><Link href="/conditions" className="hover:text-primary transition-colors" prefetch={false}>Conditions Library</Link></li>
+              <li><Link href="/locations/ontario/toronto" className="text-muted-foreground hover:text-primary transition-colors inline-block hover:translate-x-1 duration-200" prefetch={false}>Toronto &amp; GTA</Link></li>
+              <li><Link href="/locations/british-columbia/vancouver" className="text-muted-foreground hover:text-primary transition-colors inline-block hover:translate-x-1 duration-200" prefetch={false}>Metro Vancouver</Link></li>
+              <li><Link href="/locations/alberta/calgary" className="text-muted-foreground hover:text-primary transition-colors inline-block hover:translate-x-1 duration-200" prefetch={false}>Calgary &amp; Area</Link></li>
+              <li><Link href="/locations/ontario/ottawa" className="text-muted-foreground hover:text-primary transition-colors inline-block hover:translate-x-1 duration-200" prefetch={false}>Ottawa &amp; NCR</Link></li>
+              <li><Link href="/locations" className="text-muted-foreground hover:text-primary transition-colors inline-block hover:translate-x-1 duration-200" prefetch={false}>All Coverage Hubs</Link></li>
+              <li><Link href="/faq" className="text-muted-foreground hover:text-primary transition-colors inline-block hover:translate-x-1 duration-200" prefetch={false}>Direct Billing FAQ</Link></li>
+              <li><Link href="/conditions" className="text-muted-foreground hover:text-primary transition-colors inline-block hover:translate-x-1 duration-200" prefetch={false}>Conditions Library</Link></li>
             </ul>
           </div>
 
@@ -109,7 +115,7 @@ export default function Footer() {
           <div className="lg:col-span-3 space-y-6">
             <h3 className="font-headline font-bold text-xs text-primary uppercase tracking-[0.2em]">Clinical Coordination</h3>
             <div className="space-y-4 text-xs">
-              <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-secondary border border-border">
+              <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-secondary/40 border border-border">
                 <PhoneCall className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                 <div>
                   <strong className="text-foreground block text-sm">Canadian Toll-Free Line:</strong>
@@ -120,7 +126,7 @@ export default function Footer() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 p-3 rounded-2xl bg-secondary border border-border">
+              <div className="flex items-center gap-3 p-3 rounded-2xl bg-secondary/40 border border-border">
                 <Mail className="w-4 h-4 text-primary shrink-0" />
                 <a href="mailto:care.canada@ariesxpert.com" className="hover:text-primary transition-colors font-medium text-foreground">
                   care.canada@ariesxpert.com

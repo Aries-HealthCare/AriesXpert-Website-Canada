@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -13,23 +14,19 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { 
-  HeartPulse, 
   Menu, 
   ChevronDown, 
   Plus, 
   Minus, 
   MapPin, 
-  Globe, 
   Video, 
   Users, 
-  Building2, 
   Stethoscope, 
   Compass, 
   Activity, 
   ShieldCheck, 
-  Calendar 
+  HeartPulse 
 } from "lucide-react";
-import { useState, useMemo } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import BookAppointmentButton from "../book-appointment-button";
 import { usePathname } from "next/navigation";
@@ -85,67 +82,84 @@ export default function Header() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-xl border-b border-border/20 shadow-sm transition-all duration-300">
+    <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-xl border-b border-border/10 shadow-sm transition-all duration-300">
       <div className="w-full max-w-7xl 2xl:max-w-[1720px] mx-auto flex h-20 md:h-24 items-center px-4 sm:px-6 lg:px-8 relative justify-between">
         
-        {/* Left: Brand Logo */}
-        <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-3 group" prefetch={false}>
-            <div className="w-10 h-10 rounded-2xl bg-primary/10 border border-primary/30 flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm">
-              <Activity className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-headline font-black text-xl tracking-tight text-foreground">
-                  ARIES<span className="premium-gradient-text">XPERT</span>
-                </span>
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400">
-                  🍁 CA
-                </span>
-              </div>
-              <span className="text-[10px] font-mono text-muted-foreground block -mt-0.5">
-                Registered Canadian Physiotherapy
-              </span>
-            </div>
-          </Link>
-
-          {/* Location Selector Desktop */}
-          <div className="hidden xl:block">
-            <LocationSelector current="Toronto (GTA)" />
-          </div>
+        {/* Mobile Left Corner: Theme Toggle */}
+        <div className="xl:hidden flex items-center">
+          <ThemeToggle />
         </div>
 
-        {/* Center: Desktop Navigation Bar */}
-        <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
-          
-          {/* 3D Medical Labs Dropdown */}
+        {/* Logo Section */}
+        <div className="absolute left-1/2 -translate-x-1/2 xl:relative xl:left-0 xl:translate-x-0 flex items-center shrink-0">
+          <Link href="/" className="flex items-center group py-1" prefetch={false}>
+            <div className="relative h-12 w-40 sm:w-48 md:h-14 md:w-56 xl:h-16 xl:w-60 2xl:w-72 transition-all duration-300 group-hover:opacity-95">
+              <Image
+                src="/logo-light.png"
+                alt="Aries PhysioCare"
+                fill
+                sizes="(max-width: 640px) 160px, (max-width: 1024px) 224px, 288px"
+                className="object-contain block dark:hidden object-center xl:object-left"
+                priority
+              />
+              <Image
+                src="/logo-dark.png"
+                alt="Aries PhysioCare"
+                fill
+                sizes="(max-width: 640px) 160px, (max-width: 1024px) 224px, 288px"
+                className="object-contain hidden dark:block object-center xl:object-left"
+                priority
+              />
+            </div>
+          </Link>
+        </div>
+
+        {/* Navigation Menu (Desktop Only) */}
+        <nav className="hidden xl:flex items-center gap-x-2 min-[1350px]:gap-x-3 min-[1500px]:gap-x-5 px-2">
+          <Link href="/" className="text-[13px] 2xl:text-[14px] font-bold hover:text-primary transition-colors whitespace-nowrap px-1" prefetch={false}>
+            Home
+          </Link>
+          <Link href="/about" className="text-[13px] 2xl:text-[14px] font-bold hover:text-primary transition-colors whitespace-nowrap px-1" prefetch={false}>
+            About
+          </Link>
+
+          {/* 3D Medical Labs */}
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-1 text-sm 2xl:text-[15px] font-semibold hover:text-primary transition-colors py-2 px-3 focus:outline-none text-foreground whitespace-nowrap">
-              <Compass className="h-4 w-4 text-primary" />
-              <span>3D Medical Labs</span>
-              <ChevronDown className="h-4 w-4 opacity-60" />
+            <DropdownMenuTrigger className="flex items-center gap-1 text-[13px] 2xl:text-[14px] font-bold hover:text-primary transition-colors px-1 focus:outline-none text-foreground whitespace-nowrap">
+              <Compass className="h-3.5 w-3.5 text-primary" />
+              <span>3D Labs</span>
+              <ChevronDown className="h-3 w-3 opacity-60" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-72 glassmorphic p-2" align="center">
+            <DropdownMenuContent className="w-64 glassmorphic p-2">
               <DropdownMenuLabel className="text-[11px] font-mono uppercase text-muted-foreground tracking-wider">
                 Interactive Biomechanics
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href="/anatomy-lab" className="flex flex-col items-start p-2" prefetch={false}>
-                  <span className="text-xs font-bold text-foreground">3D Anatomy Lab</span>
-                  <span className="text-[11px] text-muted-foreground">Interactive musculoskeletal 3D atlas</span>
+                <Link href="/anatomy-lab" className="flex items-center gap-2.5 py-2 text-xs" prefetch={false}>
+                  <Compass className="h-4 w-4 text-primary" />
+                  <div>
+                    <span className="font-bold text-foreground block">3D Anatomy Lab</span>
+                    <span className="text-[10px] text-muted-foreground">Spine, Knee &amp; Shoulder Models</span>
+                  </div>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/movement-lab" className="flex flex-col items-start p-2" prefetch={false}>
-                  <span className="text-xs font-bold text-foreground">Kinematics Movement Lab</span>
-                  <span className="text-[11px] text-muted-foreground">ROM & force vector visualizer</span>
+                <Link href="/movement-lab" className="flex items-center gap-2.5 py-2 text-xs" prefetch={false}>
+                  <Activity className="h-4 w-4 text-accent" />
+                  <div>
+                    <span className="font-bold text-foreground block">Kinematics Movement Lab</span>
+                    <span className="text-[10px] text-muted-foreground">Real-time ROM and Gait Diagnostics</span>
+                  </div>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/surgery-and-rehabilitation" className="flex flex-col items-start p-2" prefetch={false}>
-                  <span className="text-xs font-bold text-foreground">Surgery to Movement Timeline</span>
-                  <span className="text-[11px] text-muted-foreground">Post-op TKR, THR & ACL 3D milestones</span>
+                <Link href="/surgery-and-rehabilitation" className="flex items-center gap-2.5 py-2 text-xs" prefetch={false}>
+                  <HeartPulse className="h-4 w-4 text-rose-500" />
+                  <div>
+                    <span className="font-bold text-foreground block">Surgery to Movement</span>
+                    <span className="text-[10px] text-muted-foreground">Phased Post-Op Recovery Pathways</span>
+                  </div>
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -153,13 +167,13 @@ export default function Header() {
 
           {/* Services Dropdown */}
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-1 text-sm 2xl:text-[15px] font-semibold hover:text-primary transition-colors py-2 px-3 focus:outline-none text-foreground whitespace-nowrap">
+            <DropdownMenuTrigger className="flex items-center gap-1 text-[13px] 2xl:text-[14px] font-bold hover:text-primary transition-colors px-1 focus:outline-none text-foreground whitespace-nowrap">
               <span>Services</span>
-              <ChevronDown className="h-4 w-4 opacity-60" />
+              <ChevronDown className="h-3 w-3 opacity-60" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-72 glassmorphic p-2" align="center">
+            <DropdownMenuContent className="w-72 glassmorphic p-2">
               <DropdownMenuLabel className="text-[11px] font-mono uppercase text-muted-foreground tracking-wider">
-                Clinical Formats
+                Clinical Care Formats
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               {staticServices.map((service) => (
@@ -178,67 +192,48 @@ export default function Header() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Conditions */}
-          <Link
-            href="/conditions"
-            className="text-sm 2xl:text-[15px] font-semibold hover:text-primary transition-colors py-2 px-3 text-foreground whitespace-nowrap"
-            prefetch={false}
-          >
+          <Link href="/conditions" className="text-[13px] 2xl:text-[14px] font-bold hover:text-primary transition-colors whitespace-nowrap px-1" prefetch={false}>
             Conditions
           </Link>
-
-          {/* Registered Therapists */}
-          <Link
-            href="/experts"
-            className="text-sm 2xl:text-[15px] font-semibold hover:text-primary transition-colors py-2 px-3 text-foreground whitespace-nowrap"
-            prefetch={false}
-          >
-            Registered PTs
+          <Link href="/experts" className="text-[13px] 2xl:text-[14px] font-bold hover:text-primary transition-colors flex items-center gap-1 whitespace-nowrap px-1" prefetch={false}>
+            <Users className="h-3.5 w-3.5" /> Registered PTs
           </Link>
-
-          {/* Locations */}
-          <Link
-            href="/locations"
-            className="text-sm 2xl:text-[15px] font-semibold hover:text-primary transition-colors py-2 px-3 text-foreground whitespace-nowrap"
-            prefetch={false}
-          >
+          <Link href="/locations" className="text-[13px] 2xl:text-[14px] font-bold hover:text-primary transition-colors whitespace-nowrap px-1" prefetch={false}>
             Locations
           </Link>
-
-          {/* Direct Billing Pill */}
-          <Link
-            href="/faq"
-            className="hidden 2xl:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/20 text-xs font-medium text-primary hover:bg-primary/10 transition-colors"
-            prefetch={false}
-          >
-            <ShieldCheck className="h-3.5 w-3.5 text-primary" />
-            <span>Direct Billing</span>
+          <Link href="/faq" className="hidden 2xl:flex text-[14px] font-bold hover:text-primary transition-colors whitespace-nowrap px-1" prefetch={false}>
+            FAQ
           </Link>
+
+          <div className="hidden min-[1600px]:flex items-center gap-2 border-l ml-1 pl-3 border-border/50">
+            <Link href="/virtual-physiotherapy" className="text-[13px] 2xl:text-[14px] font-black hover:text-primary transition-colors flex items-center gap-1.5 text-accent whitespace-nowrap" prefetch={false}>
+              <Video className="h-4 w-4 animate-pulse" /> Free Consultation
+            </Link>
+          </div>
         </nav>
 
-        {/* Right: Actions, ThemeToggle & Mobile Drawer */}
-        <div className="flex items-center gap-3">
-          
-          {/* Theme Toggle Button */}
-          <ThemeToggle />
-
-          {/* Free 15-Min Tele-Assessment CTA */}
+        {/* Actions Section */}
+        <div className="flex items-center gap-2 sm:gap-2.5 2xl:gap-3 shrink-0">
+          <div className="hidden md:block">
+            <LocationSelector current="Toronto (GTA)" />
+          </div>
+          <div className="flex items-center">
+            <ThemeToggle />
+          </div>
           <Link
-            href="/virtual-physiotherapy"
-            className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-border/60 text-xs font-semibold text-foreground hover:bg-muted transition-all"
+            href="/contact"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 2xl:px-4 2xl:py-2.5 rounded-full border border-primary/30 bg-primary/10 hover:bg-primary/20 text-primary text-xs 2xl:text-[13px] font-bold transition-all hover:scale-105 whitespace-nowrap shrink-0"
             prefetch={false}
           >
-            <Video className="w-3.5 h-3.5 text-primary" />
-            <span>Free 15-Min Call</span>
+            <Stethoscope className="w-3.5 h-3.5" />
+            <span>Triage</span>
           </Link>
-
-          {/* Book Home Visit CTA */}
-          <BookAppointmentButton className="hidden md:inline-flex shadow-lg" size="default">
-            Book In-Home PT
-          </BookAppointmentButton>
-
-          {/* Mobile Menu Sheet */}
-          <div className="lg:hidden">
+          <div className="hidden sm:inline-flex shrink-0">
+            <BookAppointmentButton className="neon-primary-border bg-primary text-white hover:bg-primary/95 shadow-xl transition-all rounded-full px-4 py-2 2xl:px-6 2xl:py-2.5 text-xs 2xl:text-sm font-black tracking-wide hover:-translate-y-0.5 whitespace-nowrap shrink-0">
+              Book Home Assessment
+            </BookAppointmentButton>
+          </div>
+          <div className="xl:hidden flex items-center">
             <MobileMenu currentLocationName="Toronto (GTA)" />
           </div>
         </div>
@@ -266,12 +261,21 @@ function MobileMenu({ currentLocationName }: { currentLocationName: string | nul
       <SheetContent side="right" className="w-[300px] bg-background/95 backdrop-blur-md flex flex-col p-0 border-l">
         <SheetHeader className="p-6 pb-4 border-b">
           <SheetTitle>
-            <Link href="/" className="flex items-center gap-2" prefetch={false}>
-              <Activity className="w-5 h-5 text-primary" />
-              <span className="font-headline font-black text-lg text-foreground">
-                ARIES<span className="premium-gradient-text">XPERT</span>
-              </span>
-              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-red-500/10 text-red-500 font-bold">🍁 CA</span>
+            <Link href="/" className="flex items-center" prefetch={false}>
+              <div className="relative h-12 w-48">
+                <Image
+                  src="/logo-light.png"
+                  alt="Aries PhysioCare"
+                  fill
+                  className="object-contain block dark:hidden object-left"
+                />
+                <Image
+                  src="/logo-dark.png"
+                  alt="Aries PhysioCare"
+                  fill
+                  className="object-contain hidden dark:block object-left"
+                />
+              </div>
             </Link>
           </SheetTitle>
         </SheetHeader>
@@ -316,7 +320,7 @@ function MobileMenu({ currentLocationName }: { currentLocationName: string | nul
               </CollapsibleContent>
             </Collapsible>
 
-            <Link href="/conditions" className="py-2.5 px-2 hover:text-primary transition-colors" prefetch={false}>Conditions (140+ Topics)</Link>
+            <Link href="/conditions" className="py-2.5 px-2 hover:text-primary transition-colors" prefetch={false}>Conditions Directory</Link>
             <Link href="/experts" className="py-2.5 px-2 hover:text-primary transition-colors" prefetch={false}>Registered Physiotherapists</Link>
             <Link href="/locations" className="py-2.5 px-2 hover:text-primary transition-colors" prefetch={false}>Canadian Locations</Link>
             <Link href="/resources" className="py-2.5 px-2 hover:text-primary transition-colors" prefetch={false}>Health Resources</Link>
@@ -324,7 +328,7 @@ function MobileMenu({ currentLocationName }: { currentLocationName: string | nul
           </nav>
         </div>
         <div className="p-4 border-t mt-auto">
-          <BookAppointmentButton className="w-full">
+          <BookAppointmentButton className="w-full neon-accent-border">
             Book Assessment
           </BookAppointmentButton>
         </div>
