@@ -1,3 +1,5 @@
+import { LucideIcon } from "lucide-react";
+
 export type BodyRegion = 
   | 'head'
   | 'neck'
@@ -14,36 +16,6 @@ export type AnatomicalLayer = 'skeletal' | 'muscular' | 'articular' | 'nervous' 
 
 export type CareFormat = 'in-clinic' | 'in-home' | 'virtual';
 
-export interface Condition {
-  id: string;
-  name: string;
-  slug: string;
-  category: 'orthopedic' | 'sports' | 'neurological' | 'chronic-pain' | 'post-surgical' | 'geriatric' | 'pediatric' | 'womens-health' | 'vestibular' | 'tmj';
-  bodyRegion: BodyRegion;
-  shortDescription: string;
-  whatIsIt: string;
-  anatomyOverview: string;
-  symptoms: string[];
-  movementImpact: string[];
-  assessmentProtocol: string[];
-  evidenceBasedTreatments: string[];
-  rehabilitationTimeline: {
-    phase: string;
-    duration: string;
-    goal: string;
-    focus: string;
-  }[];
-  homeCareEducation: string[];
-  redFlagsUrgentCare: string[];
-  faqs: {
-    question: string;
-    answer: string;
-  }[];
-  relatedConditions: string[];
-  relatedTreatments: string[];
-  interactive3DModelKey: string;
-}
-
 export interface Treatment {
   id: string;
   name: string;
@@ -58,6 +30,7 @@ export interface Treatment {
   treatedConditions: string[];
   cadPricingEstimate?: string;
   faqs?: {
+    id?: string;
     question: string;
     answer: string;
   }[];
@@ -92,7 +65,8 @@ export interface SurgicalRehabTimeline {
     precautions: string[];
     movementGoal: string;
   }[];
-  faqs: {
+  faqs?: {
+    id?: string;
     question: string;
     answer: string;
   }[];
@@ -121,8 +95,8 @@ export interface RegisteredExpert {
   id: string;
   slug: string;
   fullName: string;
-  credentials: string; // e.g. "PT, MSc.PT, FCAMPT"
-  regulatoryCollege: string; // e.g. "College of Physiotherapists of Ontario (CPO)"
+  credentials: string;
+  regulatoryCollege: string;
   registrationNumberPlaceholder: string;
   specialties: string[];
   languagesSpoken: string[];
@@ -149,6 +123,7 @@ export interface CanadianCity {
   clinicLocationsNote: string;
   directBillingProviders: string[];
   localFaqs: {
+    id?: string;
     question: string;
     answer: string;
   }[];
@@ -162,6 +137,33 @@ export interface CanadianProvince {
   majorCities: CanadianCity[];
   regulatoryCollegeName: string;
   telehealthCoverageRegulations: string;
+}
+
+export interface UKCityHub {
+  id: string;
+  name: string;
+  nation: string;
+  region: string;
+  slug: string;
+  headline: string;
+  description: string;
+  keyPostcodes: string[];
+  keyHubs: string[];
+  image: string;
+  inHomeLeadTime: string;
+  directBillingSupported: boolean;
+}
+
+export interface UKNation {
+  hpcFrameworkNote?: string;
+  regulatoryCollegeName?: string;
+  capital?: string;
+  code: string;
+  name: string;
+  slug: string;
+  regulatoryBody?: string;
+  telehealthRegulations?: string;
+  majorHubs: UKCityHub[];
 }
 
 export interface KnowledgeArticle {
@@ -198,4 +200,203 @@ export interface BookingState {
   patientPhone: string;
   insuranceProvider: string;
   additionalNotes: string;
+}
+
+export type Service = {
+  id: string;
+  name: string;
+  description: string;
+  slug: string;
+  longDescription: string;
+  icon?: LucideIcon;
+  conditions: Condition[];
+};
+
+export type Speciality = {
+  id: string;
+  name: string;
+  description: string;
+};
+
+export type Therapist = {
+  id: string;
+  slug?: string;
+  name: string;
+  qualification: string;
+  experience: string;
+  imageUrl: string;
+  imageHint: string;
+};
+
+export type Location = {
+  id: string;
+  city: string;
+  address: string;
+  phone: string;
+  timings: string;
+  mapImageUrl: string;
+  mapImageHint: string;
+};
+
+export type BlogPost = {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  content: string;
+  imageUrl: string;
+  imageHint: string;
+  author: string;
+  date: string;
+  serviceTag: string;
+  relatedServiceSlug: string;
+  readTime: string;
+  keywords: string;
+};
+
+export type Faq = {
+  id?: string;
+  question: string;
+  answer: string;
+};
+
+export type Condition = {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  imageUrl?: string;
+  imageHint?: string;
+  symptoms?: string[];
+  treatmentDetails?: string;
+  benefits?: string[];
+  whoShouldOpt?: string[];
+  faqs?: Faq[];
+  category?: string;
+  bodyRegion?: BodyRegion;
+  shortDescription?: string;
+  whatIsIt?: string;
+  anatomyOverview?: string;
+  movementImpact?: string[];
+  assessmentProtocol?: string[];
+  evidenceBasedTreatments?: string[];
+  rehabilitationTimeline?: {
+    phase: string;
+    duration: string;
+    goal: string;
+    focus: string;
+  }[];
+  homeCareEducation?: string[];
+  redFlagsUrgentCare?: string[];
+  relatedConditions?: string[];
+  relatedTreatments?: string[];
+  interactive3DModelKey?: string;
+};
+
+export type SymptomDetail = {
+  name: string;
+  slug: string;
+  description: string;
+  longDescription: string;
+  causes: string[];
+  riskFactors: string[];
+  whenToSeeDoctor: string;
+  emergencySigns?: string;
+  diagnosis: string;
+  treatments: string[];
+  benefits: string[];
+  faqs: Faq[];
+  imageUrl: string;
+  imageHint: string;
+};
+
+export type TherapyDetail = {
+  name: string;
+  slug: string;
+  description: string;
+  howItWorks: string;
+  benefits: string[];
+  conditionsTreated: string[];
+  techniques: string[];
+  whoShouldOpt: string[];
+  faqs: Faq[];
+  imageUrl: string;
+  imageHint: string;
+};
+
+export type SubArea = {
+  name: string;
+  slug: string;
+  isActive: boolean;
+  seoEnabled: boolean;
+}
+
+export type Area = {
+  name: string;
+  slug: string;
+  isActive: boolean;
+  seoEnabled: boolean;
+  subAreas?: IndianSubAreaType[];
+}
+
+export type City = {
+  name: string;
+  slug: string;
+  isActive: boolean;
+  seoEnabled: boolean;
+  areas: IndianAreaType[];
+}
+
+export type State = {
+  name: string;
+  slug: string;
+  isActive: boolean;
+  seoEnabled: boolean;
+  cities: City[];
+}
+
+export type Country = {
+  name: string;
+  slug: string;
+  isActive: boolean;
+  seoEnabled: boolean;
+  states: State[];
+}
+
+export type GeoPath = {
+  country: Country | null;
+  state: State | null;
+  city: City | null;
+  area: Area | null;
+  subArea?: SubArea | null;
+};
+
+import { IndianAreaType, IndianSubAreaType } from './locations';
+
+export interface HCPCExpert {
+  id: string;
+  slug: string;
+  fullName: string;
+  credentials: string;
+  hcpcNumber: string;
+  cspNumber: string;
+  specialties: string[];
+  languagesSpoken: string[];
+  experienceYears: number;
+  imageUrl: string;
+  citiesServed: string[];
+  primaryHub: string;
+  bio: string;
+  clinicalFocus: string[];
+}
+
+export interface UKInsuranceProvider {
+  id: string;
+  code: string;
+  name: string;
+  shortName: string;
+  directBillingPortal: string;
+  typicalCoveragePercent: number;
+  physioPreAuthRequired: boolean;
+  notes: string;
 }

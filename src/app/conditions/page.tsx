@@ -31,7 +31,7 @@ export default function ConditionsPage() {
   const filteredConditions = CONDITIONS_LIBRARY.filter((cond) => {
     const matchesSearch =
       cond.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      cond.shortDescription.toLowerCase().includes(searchTerm.toLowerCase());
+      ((cond.shortDescription || cond.description || "").toLowerCase()).includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === "all" || cond.category === selectedCategory;
     const matchesRegion = selectedRegion === "all" || cond.bodyRegion === selectedRegion;
     return matchesSearch && matchesCategory && matchesRegion;

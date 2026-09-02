@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { RequestCallbackProvider } from "@/components/request-callback-provider";
 import { AttributionCapture } from "@/components/attribution-capture";
+import { FirebaseClientProvider } from "@/firebase";
 import SiteLayoutWrapper from "@/components/SiteLayoutWrapper";
 
 const inter = Inter({
@@ -89,13 +90,15 @@ export default function RootLayout({
     <html lang="en-CA" suppressHydrationWarning>
       <body className={`${inter.variable} ${outfit.variable} ${spaceGrotesk.variable} font-body antialiased flex flex-col min-h-screen bg-background text-foreground`}>
         <ThemeProvider>
-          <RequestCallbackProvider>
-            <AttributionCapture />
-            <SiteLayoutWrapper>
-              {children}
-            </SiteLayoutWrapper>
-            <Toaster />
-          </RequestCallbackProvider>
+          <FirebaseClientProvider>
+            <RequestCallbackProvider>
+              <AttributionCapture />
+              <SiteLayoutWrapper>
+                {children}
+              </SiteLayoutWrapper>
+              <Toaster />
+            </RequestCallbackProvider>
+          </FirebaseClientProvider>
         </ThemeProvider>
       </body>
     </html>
